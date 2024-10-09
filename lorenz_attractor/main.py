@@ -56,7 +56,7 @@ class LorenzAttractor:
         Calculate partial derivatives.
 
         Arguments:
-            coordinates (list[float]): function point.
+            coordinates (numpy.array): function point.
             params (list[float]): Lorenz attractor parameters.
 
         Returns:
