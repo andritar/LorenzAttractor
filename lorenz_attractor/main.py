@@ -161,6 +161,31 @@ class LorenzAttractor:
 
         plt_show()
 
+    def plot_variable_change(self, variable, num_iterations_to_show=None):
+        """
+        Plot variable value depends on iteration number.
+
+        Arguments:
+            variable (str): variable name (`x`, `y`, `z`)
+        """
+        if num_iterations_to_show is None:
+            num_iterations_to_show = len(self.cached_movement)
+            
+        variable_positions = {
+            'x': 0,
+            'y': 1,
+            'z': 2,
+        }
+        position = variable_positions.get(variable)
+
+        fig = plt_figure(dpi=100)
+        ax = fig.add_subplot(1,1,1)
+        ax.plot(self.cached_movement[: , position], linewidth=0.5)
+        ax.set_title(f'{variable} variable movement')
+        ax.set_xlabel('iteration')
+        ax.set_ylabel(variable)
+        fig.show()
+
     def build_attractor(self, params):
         """
         Build Lorenz attractor.
