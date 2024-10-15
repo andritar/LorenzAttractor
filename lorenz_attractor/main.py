@@ -163,10 +163,11 @@ class LorenzAttractor:
 
     def plot_variable_change(self, variable, num_iterations_to_show=None):
         """
-        Plot variable value depends on iteration number.
+        Plot variable change depends on iteration number.
 
         Arguments:
             variable (str): variable name (`x`, `y`, `z`)
+            num_iterations_to_show (int): number of first iterations to display.
         """
         if num_iterations_to_show is None:
             num_iterations_to_show = len(self.cached_movement)

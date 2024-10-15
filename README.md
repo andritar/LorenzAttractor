@@ -90,6 +90,8 @@ lorenz.build_attractor(params=params)
 
 **build_attractor**(params): Computes and visualizes the Lorenz Attractor in one step.
 
+**plot_variable_change**(variable, num_iterations_to_show=None): Plot how provided variable changes from iteration to iteration.
+
 ## License
 
 This project is licensed under the MIT License.
