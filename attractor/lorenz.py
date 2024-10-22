@@ -1,31 +1,56 @@
 """
 Lorenz attractor implementation.
 """
-from numpy import (
-    array as np_array,
-    empty as np_empty,
-)
+from numpy import empty as np_empty
 from matplotlib.pyplot import (
     figure as plt_figure,
     show as plt_show,
 )
 
+from attractor.derivative import (
+    calc_chen_partial_derivatives,
+    calc_four_wing_partial_derivatives,
+    calc_lorenz_partial_derivatives,
+    calc_thomas_partial_derivatives,
+)
 
-class LorenzAttractor:
+
+class StrangeAttractor:
     """
     Lorenz Attractor Numerical methods calculation implementation.
     """
 
-    def __init__(self, step=0.01, num_iterations=10000, method='euler', init_coordinates=None):
+    def __init__(
+            self,
+            attractor_type='lorenz',
+            step=0.01,
+            num_iterations=10000,
+            method='euler',
+            init_coordinates=None,
+    ):
         """
         Construct the object.
 
         Arguments:
+            attractor_type (str): type of attractor (`lorenz`, `four_wind` etc.).
             step (float): step size.
             num_iterations (int): number of times to recalculate new location.
             method (str): numerical solving method (`euler` or `runge-kutta`)
             init_coordinates (list[float]): initial location.
         """
+        if attractor_type not in ['lorenz', 'four_wing', 'thomas', 'chen']:
+            raise Exception('Invalid attractor type provided.')
+
+        if step <= 0:
+            raise Exception('Step parameter should be positive.')
+
+        if num_iterations <= 0:
+            raise Exception('num_iterations parameter should be positive.')
+
+        if not isinstance(num_iterations, int):
+            raise Exception('num_iterations parameter should be integer.')
+
+        self.attractor_type = attractor_type
         self.step = step
         self.num_iterations = num_iterations
 
@@ -50,28 +75,6 @@ class LorenzAttractor:
         """
         self.init_coordinates = init_coordinates
 
-    @staticmethod
-    def _calc_partial_derivatives(coordinates, params):
-        """
-        Calculate partial derivatives.
-
-        Arguments:
-            coordinates (numpy.array): function point.
-            params (list[float]): Lorenz attractor parameters.
-
-        Returns:
-            Lorenz attractor partial derivatives as a list.
-        """
-        x, y, z = coordinates
-        s, r, b = params
-        derivative_x = s * (y - x)
-        derivative_y = r * x - y - x * z
-        derivative_z = x * y - b * z
-
-        partial_derivatives = np_array([derivative_x, derivative_y, derivative_z])
-
-        return partial_derivatives
-
     def calculate(self, params):
         """
         Calculate movement of Lorenz attractor.
@@ -82,19 +85,47 @@ class LorenzAttractor:
         Returns:
             movement history as a matrix.
         """
+        if self.attractor_type == 'lorenz':
+            movement_df = self._calculate(derivative_func=calc_lorenz_partial_derivatives, params=params)
+
+        elif self.attractor_type == 'four_wing':
+            movement_df = self._calculate(derivative_func=calc_four_wing_partial_derivatives, params=params)
+            
+        elif self.attractor_type == 'thomas':
+            movement_df = self._calculate(derivative_func=calc_thomas_partial_derivatives, params=params)
+            
+        elif self.attractor_type == 'chen':
+            movement_df = self._calculate(derivative_func=calc_chen_partial_derivatives, params=params)
+
+        else:
+            raise Exception(f"Can't handle attractor ty[e '{attractor_type}'.")
+
+        return movement_df
+
+    def _calculate(self, derivative_func, params):
+        """
+        Internal function to calculate movement of Lorenz attractor.
+
+        Arguments:
+            derivative_func (function): function to calculate derivatives.
+            params (list[float]): Lorenz attractor parameters.
+
+        Returns:
+            movement history as a matrix.
+        """
         movement_df = np_empty((self.num_iterations + 1, 3))
         movement_df[0] = self.init_coordinates
 
         for i in range(self.num_iterations):
             if self.method == 'euler':
-                partial_derivatives = self._calc_partial_derivatives(coordinates=movement_df[i], params=params)
+                partial_derivatives = derivative_func(coordinates=movement_df[i], params=params)
                 movement_df[i + 1] = movement_df[i] + partial_derivatives * self.step
 
             elif self.method == 'runge-kutta':
-                k1 = self._calc_partial_derivatives(coordinates=movement_df[i], params=params)
-                k2 = self._calc_partial_derivatives(coordinates=movement_df[i] + self.step * k1 / 2, params=params)
-                k3 = self._calc_partial_derivatives(coordinates=movement_df[i] + self.step * k2 / 2, params=params)
-                k4 = self._calc_partial_derivatives(coordinates=movement_df[i] + self.step * k3, params=params)
+                k1 = derivative_func(coordinates=movement_df[i], params=params)
+                k2 = derivative_func(coordinates=movement_df[i] + self.step * k1 / 2, params=params)
+                k3 = derivative_func(coordinates=movement_df[i] + self.step * k2 / 2, params=params)
+                k4 = derivative_func(coordinates=movement_df[i] + self.step * k3, params=params)
 
                 movement_df[i + 1] = movement_df[i] + self.step * (k1 + 2 * k2 + 2 * k3 + k4) / 6
 
@@ -105,8 +136,7 @@ class LorenzAttractor:
 
         return movement_df
 
-    @staticmethod
-    def plot(movement_df):
+    def plot(self, movement_df):
         """
         Plot attractor.
 
@@ -119,7 +149,7 @@ class LorenzAttractor:
         ax.set_xlabel("X Axis")
         ax.set_ylabel("Y Axis")
         ax.set_zlabel("Z Axis")
-        ax.set_title("Lorenz Attractor")
+        ax.set_title(f"{self.attractor_type.replace('_', ' ').capitalize()} Attractor")
 
         plt_show()
 
@@ -157,7 +187,7 @@ class LorenzAttractor:
         ax.plot(*movement_df.T, lw=0.6)
         ax.set_xlabel(f"{projection[0].upper()} Axis")
         ax.set_ylabel(f"{projection[2].upper()} Axis")
-        ax.set_title("Lorenz Attractor")
+        ax.set_title(f"{self.attractor_type.replace('_', ' ').capitalize()} Attractor")
 
         plt_show()
 

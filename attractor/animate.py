@@ -1,15 +1,19 @@
 """
 Auxiliary functions for animation.
 """
+from numpy import (
+    min as np_min,
+    max as np_max,
+)
 from matplotlib.pyplot import figure as plt_figure
 
 
-def initialize_animation(axis_limits=None):
+def initialize_animation(data=None):
     """
     Initializes a 3D animation plot with specified axis limits.
 
     Arguments:
-        axis_limits (dict, optional): A dictionary specifying the limits for the axes.
+        data (np.array, optional): An array specifying movement data.
             The keys should be 'x', 'y', and 'z' and a values should be lists of min and max axis values.
 
     Returns:
@@ -19,13 +23,20 @@ def initialize_animation(axis_limits=None):
         - scatter (matplotlib.collections.PathCollection): The scatter plot object.
         - line (matplotlib.lines.Line2D): The line plot object.
     """
-    if axis_limits is None:
+    col_min = np_min(data, axis=0)
+    col_max = np_max(data, axis=0)
+    diffs = col_max - col_min
+    if data is not None:
         axis_limits = {
-            'x': [-25, 25],
-            'y': [-25, 25],
-            'z': [0, 50],
+            'x': [col_min[0] - diffs[0]*0.1, col_max[0] + diffs[0]*0.1],
+            'y': [col_min[1] - diffs[1]*0.1, col_max[1] + diffs[1]*0.1],
+            'z': [col_min[1] - diffs[2]*0.1, col_max[2] + diffs[2]*0.1],
         }
-    fig = plt_figure()
+        
+    else:
+        raise Exception('No movement data provided to build axws limits')
+        
+    fig = plt_figure(dpi=100)
     ax = fig.add_subplot(111, projection='3d')
 
     ax.set_xlim(axis_limits.get('x'))
